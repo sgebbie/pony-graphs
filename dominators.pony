@@ -35,9 +35,9 @@ use "collections"
  * Reverse post order products a topological sort of the graph.
  */
 
-interface Graph[N: Any #share]
+interface Graph[N]
 	fun root(): N
-	fun succ(n: N): Iterator[N]
+	fun succ(n: N): Iterator[this->N]
 
 primitive Traversal
 
