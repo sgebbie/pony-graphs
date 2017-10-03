@@ -66,14 +66,25 @@ primitive Traversal
 
 	fun tsort[N: Any #share](g: Graph[N] val): Array[N] iso^ =>
 		recover iso
-			let t: Array[N] trn = recover trn Array[N] end
-			depth_first[N](g where post = {(n:N) =>
-				// t.unshift(n) // FIXME
-				None
-			} iso)
-			t
+			let visited: SetIs[N] = SetIs[N]
+			let t: Array[N] ref = Array[N]
+			_depth_first_tsort[N](g, g.root(), visited, t)
+			// we perform an explicit in place reverse, rather than repeated 'unshift' that will probably cause a memcpy
+			t.reverse()
 		end
 
+	fun _depth_first_tsort[N: Any #share](g: Graph[N] box
+		, curr: N
+		, visited: SetIs[N]
+		, sorted: Array[N]
+	) =>
+		if visited.contains(curr) then return end // skip if visisted
+		visited.add(curr)
+		for n in g.succ(curr) do
+			_depth_first_tsort[N](g,n,visited,sorted)
+		end
+		// post order visit with push (pending later reverse)
+		sorted.push(curr)
 
 
 primitive Dominators
