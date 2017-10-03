@@ -36,7 +36,7 @@ use "collections"
  */
 
 interface Graph[N]
-	fun root(): N
+	fun root(): this->N
 	fun succ(n: N): Iterator[this->N]
 
 primitive Traversal
