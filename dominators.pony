@@ -86,14 +86,20 @@ primitive Traversal
 		// post order visit with push (pending later reverse)
 		sorted.push(curr)
 
-	fun ref tsortr[N: Any ref](g: Graph[N]): Array[N] =>
+interface RGraph[N: Any ref]
+	fun root(): N
+	fun succ(n: N): Iterator[N]
+
+class RTraversal
+
+	fun ref tsort[N: Any ref](g: RGraph[N]): Array[N] =>
 		let visited: SetIs[N] = SetIs[N]
 		let t: Array[N] = Array[N]
-		_depth_first_tsortr[N](g, g.root(), visited, t)
+		_depth_first_tsort[N](g, g.root(), visited, t)
 		// we perform an explicit in place reverse, rather than repeated 'unshift' that will probably cause a memcpy
 		t.reverse()
 
-	fun _depth_first_tsortr[N: Any ref](g: Graph[N]
+	fun ref _depth_first_tsort[N: Any ref](g: RGraph[N]
 		, curr: N
 		, visited: SetIs[N]
 		, sorted: Array[N]
@@ -101,7 +107,7 @@ primitive Traversal
 		if visited.contains(curr) then return end // skip if visisted
 		visited.add(curr)
 		for n in g.succ(curr) do
-			_depth_first_tsortr[N](g,n,visited,sorted)
+			_depth_first_tsort[N](g,n,visited,sorted)
 		end
 		// post order visit with push (pending later reverse)
 		sorted.push(curr)
