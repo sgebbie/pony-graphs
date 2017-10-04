@@ -79,7 +79,7 @@ primitive Traversal
 		, sorted: Array[N]
 	) =>
 		if visited.contains(curr) then return end // skip if visisted
-		visited.add(curr)
+		visited.set(curr)
 		for n in g.succ(curr) do
 			_depth_first_tsort[N](g,n,visited,sorted)
 		end
@@ -87,8 +87,8 @@ primitive Traversal
 		sorted.push(curr)
 
 interface RGraph[N: Any ref]
-	fun root(): N
-	fun succ(n: N): Iterator[N]
+	fun ref root(): N
+	fun ref succ(n: N): Iterator[N]
 
 class RTraversal
 
@@ -105,7 +105,7 @@ class RTraversal
 		, sorted: Array[N]
 	) =>
 		if visited.contains(curr) then return end // skip if visisted
-		visited.add(curr)
+		visited.set(curr)
 		for n in g.succ(curr) do
 			_depth_first_tsort[N](g,n,visited,sorted)
 		end
