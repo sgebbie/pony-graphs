@@ -92,12 +92,12 @@ interface RGraph[N: Any ref]
 
 class RTraversal
 
-	fun ref tsort[N: Any ref](g: RGraph[N]): Array[N] =>
+	fun ref tsort[N: Any ref](g: RGraph[N], reverse: Bool = false): Array[N] =>
 		let visited: SetIs[N] = SetIs[N]
 		let t: Array[N] = Array[N]
 		_depth_first_tsort[N](g, g.root(), visited, t)
 		// we perform an explicit in place reverse, rather than repeated 'unshift' that will probably cause a memcpy
-		t.reverse()
+		if reverse then t else t.reverse() end
 
 	fun ref _depth_first_tsort[N: Any ref](g: RGraph[N]
 		, curr: N
