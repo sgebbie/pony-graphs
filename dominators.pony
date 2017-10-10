@@ -116,14 +116,19 @@ class RTraversal
 primitive Dominators
 
 	fun gendom(predecessors_by_postorder: Array[Array[USize] val] val
-		/* Index i contains the predecessors of node i
-		 * Nodes are number in post order i.e.:
-		 *   - node 0 is the first leaf node reached,
-		 *   - and node n-1 is the root node where n is the total number of nodes.
-		 *
-		 * In order to traverse the nodes in reverse order we then simply start from 0.
-		 */
 	): Array[USize] ? =>
+		"""
+		Calculate the dominator tree for a graph based on post order predecessors.
+
+		Index `i` contains the predecessors of node `i`
+		Nodes are number in post order i.e.:
+		- node `0` is the first leaf node reached,
+		- and node `n-1` is the root node where `n` is the total number of nodes.
+
+		In order to traverse the nodes in reverse order we then simply start from 0.
+
+		The function may throw an error if the predecessor is inconsistent.
+		"""
 
 		let node_count: USize = predecessors_by_postorder.size()
 
@@ -175,7 +180,7 @@ primitive Dominators
 					let dp = doms(p)?
 					if (dp != undef) then
 						// i.e., if doms[p] already calculated
-						new_idom = _intersect(doms, p, new_idom)?
+						new_idom = _intersect(doms, p, new_idom, undef)?
 					end
 
 					j = j + 1
@@ -189,15 +194,17 @@ primitive Dominators
 		end
 		doms
 
-	fun _intersect(doms: Array[USize], b1: USize, b2: USize): USize ? =>
+	fun _intersect(doms: Array[USize], b1: USize, b2: USize, undef: USize): USize ? =>
 		var finger1 = b1
 		var finger2 = b2
 		while (finger1 != finger2) do
 			while (finger1 < finger2) do
 				finger1 = doms(finger1)?
+				if finger1 == undef then error end // stop loop - probably bad predecessor data
 			end
 			while (finger2 < finger1) do
 				finger2 = doms(finger2)?
+				if finger2 == undef then error end // stop loop - probably bad predecessor data
 			end
 		end
 		finger1
