@@ -115,8 +115,7 @@ class RTraversal
 
 primitive Dominators
 
-	fun gendom(predecessors_by_postorder: Array[Array[USize] val] val
-	): Array[USize] ? =>
+	fun gendom(predecessors_by_postorder: Array[Array[USize] val] val): Array[USize] ? =>
 		"""
 		Calculate the dominator tree for a graph based on post order predecessors.
 
@@ -175,7 +174,7 @@ primitive Dominators
 				// for all other predecessors, p, of b
 				var j: USize = 0
 				while j < predecessors.size() do
-					if j == k then j = j + 1; continue end // skip the predecessor used when initialising new_idom
+					if j == k then j = j + 1; continue end // skip the predecessor that was used when initialising new_idom
 					let p: USize = predecessors(j)?
 					let dp = doms(p)?
 					if (dp != undef) then
