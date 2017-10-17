@@ -90,6 +90,10 @@ interface RGraph[N: Any ref]
 	fun ref root(): N
 	fun ref succ(n: N): Iterator[N]
 
+interface RIndexable
+	fun ref id(): USize => 0
+	fun ref index(i: USize): USize => 0
+
 class RTraversal
 
 	fun ref tsort[N: Any ref](g: RGraph[N], reverse: Bool = false): Array[N] =>
@@ -112,6 +116,57 @@ class RTraversal
 		// post order visit with push (pending later reverse)
 		sorted.push(curr)
 
+class RPredecessors
+
+	fun ref predecessors[N: Any ref](g: RGraph[N]): (Array[N], Array[Array[USize]]) =>
+		let nodes: Array[N] = Array[N](0)
+		let pre: Array[Array[USize]] = Array[Array[USize]](0)
+		let root: N = g.root()
+		match root
+		| (let r: RIndexable) =>
+			_pre_indexable[N](g, root, 0, nodes, pre)
+		| (let r: N) =>
+			let visited: SetIs[N] = SetIs[N]
+			_pre_visisted[N](g, root, 0, nodes, pre, visited)
+		end
+		(nodes,pre)
+
+	fun ref _pre_indexable[N: Any ref](g: RGraph[N]
+		, curr: N
+		, index: USize
+		, nodes: Array[N]
+		, pre: Array[Array[USize]]): (None | USize) =>
+		""" Walks the graph, keeping track of visits nodes themselves. """
+		None
+
+	fun ref _pre_visisted[N: Any ref](g: RGraph[N]
+		, curr: N
+		, index: USize
+		, nodes: Array[N]
+		, pre: Array[Array[USize]]
+		, visited: SetIs[N]
+		): (None | USize) =>
+		""" Walks the graph, keeping track of visits in a seperate set. """
+		var counter: USize = index
+		if visited.contains(curr) then return None end // skip if visisted
+		visited.set(curr)
+		for n in g.succ(curr) do
+			match _pre_visisted[N](g,n,index,nodes,pre,visited)
+			| (let x: USize) => counter = x + 1
+			// TODO record the index of the dependencies so that the predecessor list can be updated
+			end
+		end
+		try
+			// record the mapping from the index to this node
+			nodes.reserve(counter)
+			nodes.update(counter, curr)?
+		end
+		try
+			// create an empty predecessor list for this node
+			pre.reserve(counter)
+			pre.update(counter, Array[USize])?
+		end
+		counter
 
 primitive Dominators
 
@@ -124,7 +179,7 @@ primitive Dominators
 		- node `0` is the first leaf node reached,
 		- and node `n-1` is the root node where `n` is the total number of nodes.
 
-		In order to traverse the nodes in reverse order we then simply start from 0.
+		In order to traverse the nodes in reverse order we then simply start from n-1.
 
 		The function may throw an error if the predecessor is inconsistent.
 		"""
@@ -145,20 +200,18 @@ primitive Dominators
 		var changed: Bool = true
 		while changed do
 			changed = false
-			// Traverse nodes in reverse postorder, when means starting at node node_count and working backwards
+			// Traverse nodes in reverse postorder, which means starting at node node_count and working backwards
 			var b: USize = node_count
 			repeat
 				// simple move to the next reverse postorder index
 				b = b - 1
 
-				// But because the predecessors are already sorted by reverse post order,
-				// this means we simply count from 0 to node_count.
-
-				if b == start_node then continue end // (except for the start node)
+				// skip processing of the start node
+				if b == start_node then continue end
 
 				let predecessors: Array[USize] val = predecessors_by_postorder(b)?
 				// Now pick any predecessor that has already been processed in this change iteration.
-				// Because we b is following a reverse postorder there must be a predecessor that was already visited,
+				// Because b is following a reverse postorder there must be at least one predecessor that was already visited,
 				// but this will not necessarily hold true for all predecessors, so find one with a greater index value.
 				// (we can improve the performance by requiring that predecessors are reverse sorted - and then pick the first
 				// one)
