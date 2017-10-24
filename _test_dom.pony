@@ -186,8 +186,7 @@ class iso _TestGenerateDominatorsLargerSuccessors is UnitTest
 	fun ref apply(h: TestHelper) ? =>
 
 		let graph: TanujGraph ref = TanujGraph
-		let rpre: RPredecessors ref = RPredecessors
-		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](graph)
+		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = RPredecessors.predecessors[String ref](graph)
 		// ArrayHelper.dump(h,dnodes,dpre)
 		let doms: Array[USize] = Dominators.gendom(dpre)?
 		// ArrayHelper.array_print(h.env, doms, "doms")
@@ -220,8 +219,7 @@ class iso _TestGeneratePredecessorsDiamond is UnitTest
 				diamond.c
 				diamond.a
 		]
-		let rpre: RPredecessors ref = RPredecessors
-		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](diamond)
+		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = RPredecessors.predecessors[String ref](diamond)
 
 		// ArrayHelper.dump(h,dnodes,dpre)
 
@@ -274,8 +272,7 @@ class iso _TestGeneratePredecessorsLarger is UnitTest
 				graph.c
 				graph.r
 		]
-		let rpre: RPredecessors ref = RPredecessors
-		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](graph)
+		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = RPredecessors.predecessors[String ref](graph)
 
 		// ArrayHelper.dump(h,dnodes,dpre)
 
