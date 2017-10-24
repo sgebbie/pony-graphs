@@ -159,6 +159,7 @@ class RPredecessors
 		, loops: Array[(N,USize)]
 	): (None | USize) =>
 		""" Walks the graph, keeping track of visits nodes themselves. """
+		// TODO
 		None
 
 	fun ref _pre_visisted[N: Any ref](g: RGraph[N]
