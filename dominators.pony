@@ -217,7 +217,7 @@ class RPredecessors
 
 primitive Dominators
 
-	fun gendom(predecessors_by_postorder: Array[Array[USize] val] val): Array[USize] ? =>
+	fun gendom(predecessors_by_postorder: Array[Array[USize]] box): Array[USize] ? =>
 		"""
 		Calculate the dominator tree for a graph based on post order predecessors.
 
@@ -256,7 +256,7 @@ primitive Dominators
 				// skip processing of the start node
 				if b == start_node then continue end
 
-				let predecessors: Array[USize] val = predecessors_by_postorder(b)?
+				let predecessors: Array[USize] box = predecessors_by_postorder(b)?
 				// Now pick any predecessor that has already been processed in this change iteration.
 				// Because b is following a reverse postorder there must be at least one predecessor that was already visited.
 				// But this does not imply that all predecessors have already been visited, so find one with a greater index
