@@ -18,6 +18,7 @@ actor DominatorTests is TestList
 		test(_TestTopologicalSort)
 		test(_TestGenerateDominatorsDiamond)
 		test(_TestGenerateDominatorsLarger)
+		test(_TestGeneratePredecessorsDiamond)
 
 class iso _TestTopologicalSort is UnitTest
 	"""Tests sorting a graph topologically. """
@@ -42,11 +43,12 @@ class iso _TestTopologicalSort is UnitTest
 
 primitive ArrayHelper
 
-	fun assert_arrays_eq[N](h: TestHelper, expected: Array[N], actual: Array[N]): Bool =>
+	fun assert_arrays_eq[N](h: TestHelper, expected: Array[N], actual: Array[N], loc: SourceLoc = __loc): Bool =>
 		// test array equality
+		let locs: String = loc.method() + ":" + loc.line().string()
 		let esize: USize = expected.size()
 		let asize: USize = actual.size()
-		h.assert_eq[USize](esize, asize, "Array sizes differ")
+		h.assert_eq[USize](esize, asize, "Array sizes differ: " + locs)
 		var eq = esize == asize
 		let si = Iter[N](actual.values())
 		let xi = Iter[N](expected.values())
@@ -54,9 +56,33 @@ primitive ArrayHelper
 			if s isnt x then
 				match (s,x)
 				| (let s': Stringable, let x': Stringable) =>
-					h.fail("Expected " + x'.string() + " but was " + s'.string())
+					h.fail("Expected " + x'.string() + " but was " + s'.string() + ": " + locs)
 				else
-					h.fail("Expected element and actual element differ")
+					h.fail("Expected element and actual element differ: " + locs)
+				end
+				eq = false
+				break
+			end
+		end
+		h.assert_true(eq)
+		eq
+
+	fun assert_arrays_eqc[N: Any #read](h: TestHelper, expected: Array[N], actual: Array[N], eval: {(TestHelper,N,N): Bool}, loc: SourceLoc = __loc): Bool =>
+		// test array equality
+		let locs: String = loc.method() + ":" + loc.line().string()
+		let esize: USize = expected.size()
+		let asize: USize = actual.size()
+		h.assert_eq[USize](esize, asize, "Array sizes differ: " + locs)
+		var eq = esize == asize
+		let si = Iter[N](actual.values())
+		let xi = Iter[N](expected.values())
+		for (s,x) in si.zip[N](xi) do
+			if eval(h,s,x) then
+				match (s,x)
+				| (let s': Stringable, let x': Stringable) =>
+					h.fail("Expected " + x'.string() + " but was " + s'.string() + ": " + locs)
+				else
+					h.fail("Expected element and actual element differ: " + locs)
 				end
 				eq = false
 				break
@@ -128,6 +154,49 @@ class iso _TestGenerateDominatorsLarger is UnitTest
 				//         0  1  2  3  4  5  6  7  8  9  10 11 12
 				[as USize: 12;12;12;12; 5;12;12;12; 9;11;11;12;12]
 			, doms)
+
+class iso _TestGeneratePredecessorsDiamond is UnitTest
+	"""Tests building a predecessor map."""
+
+	fun name(): String => "graph:predecessors:diamond"
+
+	fun ref apply(h: TestHelper) =>
+
+		let diamond: DiamondGraph ref = DiamondGraph
+
+		// expected predecessors in postorder
+		let pre: Array[Array[USize]] = [as Array[USize]:
+				[as USize: 1;2 ] // d = 0
+				[as USize: 3   ] // b = 1
+				[as USize: 3   ] // c = 2
+				[as USize:     ] // a = 3
+		]
+		// expected node map in postorder
+		let nodes: Array[String ref] = [as String ref:
+				diamond.d
+				diamond.b
+				diamond.c
+				diamond.a
+		]
+		let rpre: RPredecessors ref = RPredecessors
+		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](diamond)
+		ArrayHelper.assert_arrays_eq[String ref](h, nodes, dnodes)
+
+		h.env.out.print("[")
+		for p in dpre.values() do
+			h.env.out.write("  [ ")
+			for n in p.values() do
+				h.env.out.>write(n.string()).>write(" ")
+			end
+			h.env.out.print("]")
+		end
+		h.env.out.print("]")
+
+		// ArrayHelper.assert_arrays_eq[Array[USize]](h, pre, dpre)
+		ArrayHelper.assert_arrays_eqc[Array[USize]](h, pre, dpre, {
+			(h: TestHelper, lhs: Array[USize], rhs: Array[USize]): Bool =>
+				ArrayHelper.assert_arrays_eq[USize](h,lhs,rhs) }
+			)
 
 class DiamondGraph is RGraph[String ref]
 

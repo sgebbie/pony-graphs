@@ -119,15 +119,20 @@ class RTraversal
 class RPredecessors
 
 	fun ref predecessors[N: Any ref](g: RGraph[N]): (Array[N], Array[Array[USize]]) =>
+		"""
+		Takes a graph and produces an ordered mapping to the predecessors indexed in post order.
+		"""
 		let nodes: Array[N] = Array[N](0)
 		let pre: Array[Array[USize]] = Array[Array[USize]](0)
 		let root: N = g.root()
 		match root
 		| (let r: RIndexable) =>
+			""" Use node local storage for indicies if available. """
 			_pre_indexable[N](g, root, 0, nodes, pre)
 		| (let r: N) =>
+			""" Use a visited map if the nodes can not hold indicies. """
 			let visited: SetIs[N] = SetIs[N]
-			_pre_visisted[N](g, root, 0, nodes, pre, visited)
+			_pre_visisted[N](g, root, nodes, pre, visited)
 		end
 		(nodes,pre)
 
@@ -141,32 +146,48 @@ class RPredecessors
 
 	fun ref _pre_visisted[N: Any ref](g: RGraph[N]
 		, curr: N
-		, index: USize
 		, nodes: Array[N]
 		, pre: Array[Array[USize]]
 		, visited: SetIs[N]
 		): (None | USize) =>
 		""" Walks the graph, keeping track of visits in a seperate set. """
-		var counter: USize = index
 		if visited.contains(curr) then return None end // skip if visisted
-		visited.set(curr)
+
+		visited.set(curr) // mark as visited
+		// visit the successors and keep track of their indicies
+		let post: Array[USize] = Array[USize]
 		for n in g.succ(curr) do
-			match _pre_visisted[N](g,n,index,nodes,pre,visited)
-			| (let x: USize) => counter = x + 1
-			// TODO record the index of the dependencies so that the predecessor list can be updated
+			match _pre_visisted[N](g,n,nodes,pre,visited)
+			| (let idx: USize) =>
+				// record the index of the visited dependency so that
+				// its predecessor list can be update later on
+				post.push(idx)
+			| None =>
+				// darn, we hit a node that was already visited, so we will
+				// need to search for its index in the nodex array
+				try
+					let idx = nodes.find(n)?
+					post.push(idx)
+				end
 			end
 		end
-		try
-			// record the mapping from the index to this node
-			nodes.reserve(counter)
-			nodes.update(counter, curr)?
+		// this node will claim the next available index
+		let index = nodes.size()
+		// record the mapping from the index to this node
+		nodes.push(curr)
+		// create an empty predecessor list for this node
+		pre.push(Array[USize](1))
+		// now that we know the index of this node, we can
+		// update the predecessors list in the successors of this node
+		for n in post.values() do
+			try
+				// all successors have been visited and would have created their predecessor arrays already.
+				let p: Array[USize] = pre(n)? // so, this should not fail
+				p.push(index)
+			end
 		end
-		try
-			// create an empty predecessor list for this node
-			pre.reserve(counter)
-			pre.update(counter, Array[USize])?
-		end
-		counter
+		// return this nodes assigned index
+		index
 
 primitive Dominators
 
@@ -211,8 +232,9 @@ primitive Dominators
 
 				let predecessors: Array[USize] val = predecessors_by_postorder(b)?
 				// Now pick any predecessor that has already been processed in this change iteration.
-				// Because b is following a reverse postorder there must be at least one predecessor that was already visited,
-				// but this will not necessarily hold true for all predecessors, so find one with a greater index value.
+				// Because b is following a reverse postorder there must be at least one predecessor that was already visited.
+				// But this does not imply that all predecessors have already been visited, so find one with a greater index
+				// value than the node, b, we are currently considering.
 				// (we can improve the performance by requiring that predecessors are reverse sorted - and then pick the first
 				// one)
 				let predecessors_count = predecessors.size()
