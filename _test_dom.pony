@@ -58,7 +58,7 @@ primitive ArrayHelper
 				| (let s': Stringable, let x': Stringable) =>
 					h.fail("Expected " + x'.string() + " but was " + s'.string() + ": " + locs)
 				else
-					h.fail("Expected element and actual element differ: " + locs)
+					h.fail("Expected object element and actual element differ: " + locs)
 				end
 				eq = false
 				break
@@ -77,12 +77,12 @@ primitive ArrayHelper
 		let si = Iter[N](actual.values())
 		let xi = Iter[N](expected.values())
 		for (s,x) in si.zip[N](xi) do
-			if eval(h,s,x) then
+			if not eval(h,s,x) then
 				match (s,x)
 				| (let s': Stringable, let x': Stringable) =>
 					h.fail("Expected " + x'.string() + " but was " + s'.string() + ": " + locs)
 				else
-					h.fail("Expected element and actual element differ: " + locs)
+					h.fail("Expected array element and actual element differ: " + locs)
 				end
 				eq = false
 				break
