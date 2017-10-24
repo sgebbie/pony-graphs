@@ -19,6 +19,7 @@ actor DominatorTests is TestList
 		test(_TestGenerateDominatorsDiamond)
 		test(_TestGenerateDominatorsLarger)
 		test(_TestGeneratePredecessorsDiamond)
+		test(_TestGeneratePredecessorsLarger)
 
 class iso _TestTopologicalSort is UnitTest
 	"""Tests sorting a graph topologically. """
@@ -103,6 +104,28 @@ primitive ArrayHelper
 		end
 		env.out.print(" ]")
 
+	fun dump(h: TestHelper, dnodes: Array[String ref], dpre: Array[Array[USize]]) =>
+
+		var idx: USize = 0
+		h.env.out.write(">> ")
+		while idx < dnodes.size() do
+			try
+				h.env.out.write("(" + idx.string() + " ⇒ " + dnodes(idx)? + ") ")
+			end
+			idx = idx + 1
+		end
+		h.env.out.print("<<")
+
+		h.env.out.print("[")
+		for p in dpre.values() do
+			h.env.out.write("  [ ")
+			for n in p.values() do
+				h.env.out.>write(n.string()).>write(" ")
+			end
+			h.env.out.print("]")
+		end
+		h.env.out.print("]")
+
 class iso _TestGenerateDominatorsDiamond is UnitTest
 	"""Tests building a dominator tree."""
 
@@ -149,7 +172,7 @@ class iso _TestGenerateDominatorsLarger is UnitTest
 		end
 
 		let doms: Array[USize] = Dominators.gendom(pre)?
-		ArrayHelper.array_print(h.env, doms, "doms")
+		// ArrayHelper.array_print(h.env, doms, "doms")
 		ArrayHelper.assert_arrays_eq[USize](h,
 				//         0  1  2  3  4  5  6  7  8  9  10 11 12
 				[as USize: 12;12;12;12; 5;12;12;12; 9;11;11;12;12]
@@ -180,23 +203,71 @@ class iso _TestGeneratePredecessorsDiamond is UnitTest
 		]
 		let rpre: RPredecessors ref = RPredecessors
 		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](diamond)
-		ArrayHelper.assert_arrays_eq[String ref](h, nodes, dnodes)
 
-		h.env.out.print("[")
-		for p in dpre.values() do
-			h.env.out.write("  [ ")
-			for n in p.values() do
-				h.env.out.>write(n.string()).>write(" ")
-			end
-			h.env.out.print("]")
-		end
-		h.env.out.print("]")
+		// ArrayHelper.dump(h,dnodes,dpre)
+
+		ArrayHelper.assert_arrays_eq[String ref](h, nodes, dnodes)
 
 		// ArrayHelper.assert_arrays_eq[Array[USize]](h, pre, dpre)
 		ArrayHelper.assert_arrays_eqc[Array[USize]](h, pre, dpre, {
 			(h: TestHelper, lhs: Array[USize], rhs: Array[USize]): Bool =>
 				ArrayHelper.assert_arrays_eq[USize](h,lhs,rhs) }
 			)
+
+class iso _TestGeneratePredecessorsLarger is UnitTest
+	"""Tests building a predecessor map."""
+
+	fun name(): String => "graph:predecessors:larger"
+
+	fun ref apply(h: TestHelper) =>
+
+		let graph: TanujGraph ref = TanujGraph
+
+		// expected predecessors in postorder
+		let pre: Array[Array[USize]] = [as Array[USize]:
+			[as USize: 3;7 ]
+			[as USize: 2;8;9;10 ]
+			[as USize: 3;1 ]
+			[as USize: 4;0 ]
+			[as USize: 5 ]
+			[as USize: 6;7 ]
+			[as USize: 7;12 ]
+			[as USize: 12 ]
+			[as USize: 11 ]
+			[as USize: 10 ]
+			[as USize: 11 ]
+			[as USize: 12 ]
+			[as USize: 2 ]
+		]
+		// expected node map in postorder
+		let nodes: Array[String ref] = [as String ref:
+				graph.e
+				graph.i
+				graph.k
+				graph.h
+				graph.l
+				graph.d
+				graph.a
+				graph.b
+				graph.f
+				graph.j
+				graph.g
+				graph.c
+				graph.r
+		]
+		let rpre: RPredecessors ref = RPredecessors
+		(let dnodes: Array[String ref], let dpre: Array[Array[USize]]) = rpre.predecessors[String ref](graph)
+
+		// ArrayHelper.dump(h,dnodes,dpre)
+
+		ArrayHelper.assert_arrays_eq[String ref](h, nodes, dnodes)
+
+		// ArrayHelper.assert_arrays_eq[Array[USize]](h, pre, dpre)
+		ArrayHelper.assert_arrays_eqc[Array[USize]](h, pre, dpre, {
+			(h: TestHelper, lhs: Array[USize], rhs: Array[USize]): Bool =>
+				ArrayHelper.assert_arrays_eq[USize](h,lhs,rhs) }
+			)
+
 
 class DiamondGraph is RGraph[String ref]
 

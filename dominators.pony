@@ -128,11 +128,26 @@ class RPredecessors
 		match root
 		| (let r: RIndexable) =>
 			""" Use node local storage for indicies if available. """
-			_pre_indexable[N](g, root, 0, nodes, pre)
+			let loops: Array[(N,USize)] = Array[(N,USize)]
+			_pre_indexable[N](g, root, 0, nodes, pre, loops)
 		| (let r: N) =>
 			""" Use a visited map if the nodes can not hold indicies. """
-			let visited: SetIs[N] = SetIs[N]
-			_pre_visisted[N](g, root, nodes, pre, visited)
+			let visited: MapIs[N,(USize|None)] = MapIs[N,(USize|None)]
+			let loops: Array[(N,USize)] = Array[(N,USize)]
+			_pre_visisted[N](g, root, nodes, pre, visited, loops)
+			// now fix loops
+			for (to_n,from_idx) in loops.values() do
+				try
+					match visited(to_n)?
+					| (let to_idx: USize) =>
+						pre(to_idx)?.push(from_idx)
+					else
+						None // hmmm, we should have resolved indicies for all nodes.
+					end
+				else
+					None // hmmm, we should have visited all nodes, so acces to 'visited' and 'pre' should not fail
+				end
+			end
 		end
 		(nodes,pre)
 
@@ -140,7 +155,9 @@ class RPredecessors
 		, curr: N
 		, index: USize
 		, nodes: Array[N]
-		, pre: Array[Array[USize]]): (None | USize) =>
+		, pre: Array[Array[USize]]
+		, loops: Array[(N,USize)]
+	): (None | USize) =>
 		""" Walks the graph, keeping track of visits nodes themselves. """
 		None
 
@@ -148,43 +165,52 @@ class RPredecessors
 		, curr: N
 		, nodes: Array[N]
 		, pre: Array[Array[USize]]
-		, visited: SetIs[N]
+		, visited: MapIs[N,(USize|None)]
+		, loops: Array[(N,USize)]
 		): (None | USize) =>
 		""" Walks the graph, keeping track of visits in a seperate set. """
-		if visited.contains(curr) then return None end // skip if visisted
+		try
+			// skip if visited
+			return visited(curr)?
+		end
 
-		visited.set(curr) // mark as visited
+		visited.update(curr, None) // mark as visited (but we don't know the index yet)
 		// visit the successors and keep track of their indicies
-		let post: Array[USize] = Array[USize]
+		let posti: Array[USize] = Array[USize]
+		let postn: Array[N] = Array[N]
 		for n in g.succ(curr) do
-			match _pre_visisted[N](g,n,nodes,pre,visited)
+			match _pre_visisted[N](g,n,nodes,pre,visited,loops)
 			| (let idx: USize) =>
 				// record the index of the visited dependency so that
 				// its predecessor list can be update later on
-				post.push(idx)
+				posti.push(idx)
 			| None =>
-				// darn, we hit a node that was already visited, so we will
-				// need to search for its index in the nodex array
-				try
-					let idx = nodes.find(n)?
-					post.push(idx)
-				end
+				// darn, we detected a loop. That is, we have reached a node that
+				// has already been visited, but it has not yet been assigned an index
+				postn.push(n)
 			end
 		end
 		// this node will claim the next available index
 		let index = nodes.size()
+		// record the actual index for this node now that we know the value
+		visited.update(curr, index)
 		// record the mapping from the index to this node
 		nodes.push(curr)
 		// create an empty predecessor list for this node
 		pre.push(Array[USize](1))
 		// now that we know the index of this node, we can
 		// update the predecessors list in the successors of this node
-		for n in post.values() do
+		for n in posti.values() do
 			try
-				// all successors have been visited and would have created their predecessor arrays already.
+				// all successors have been visited and would have created
+				// their predecessor arrays already.
 				let p: Array[USize] = pre(n)? // so, this should not fail
 				p.push(index)
 			end
+		end
+		for n in postn.values() do
+			// we will need to resolve this loop afterwards
+			loops.push((n, index))
 		end
 		// return this nodes assigned index
 		index
