@@ -8,6 +8,12 @@ The main algorithms implemented are:
 * dominators
 * topological sort
 
+## Notes
+
+* While the dominator algorithm is tested, the actual Pony API is still very
+  rough and requires refinement relative to the reference capabilities supported
+  for graph nodes.
+
 [ponylang]: https://www.ponylang.org/ "Pony is an open-source, object-oriented, actor-model, capabilities-secure, high-performance programming language."
 
 # References
