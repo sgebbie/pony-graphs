@@ -31,6 +31,18 @@ use "collections"
  */
 
 /*
+	Dominator frontier
+
+	for all nodes, b
+		if the number of predecessors of b ≥ 2
+			for all predecessors, p, of b
+			runner ← p
+			while runner ≠ doms[b]
+				add b to runner’s dominance frontier set
+				runner = doms[runner]
+*/
+
+/*
  * Reverse post order: https://en.wikipedia.org/wiki/Depth-first_search#Vertex_orderings
  * Reverse post order produces a topological sort of the graph.
  */
