@@ -31,7 +31,8 @@ use "collections"
  */
 
 /*
-	Dominator frontier
+	Dominator frontier:
+		The set of all cfg nodes, y, such that b dominates a predecessor of y but does not strictly dominate y.
 
 	for all nodes, b
 		if the number of predecessors of b ≥ 2
