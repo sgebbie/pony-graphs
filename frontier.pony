@@ -22,8 +22,9 @@ primitive Frontiers
 
 			// create empty frontier sets
 			var f: USize = 0
-			while f < frontiers.size() do
+			while f < dominators_by_postorder.size() do
 				frontiers.push(Array[USize](0))
+				f = f + 1
 			end
 
 			// for all nodes, b
@@ -38,11 +39,13 @@ primitive Frontiers
 						var runner: USize = p
 						while runner != dominators_by_postorder(b)? do
 							// add b to the runner's dominance frontier set
-							// (hmmm, do we need to check for existance, i.e. will we get duplicates?)
-							frontiers(runner)?.push(b)
+							// (note, we need to check for duplicates)
+							let r: Array[USize] = frontiers(runner)?
+							if not r.contains(b) then r.push(b) end
 							// move along
 							runner = dominators_by_postorder(runner)?
 						end
+						pi = pi + 1
 					end
 				end
 				b = b + 1
