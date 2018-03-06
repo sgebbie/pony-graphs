@@ -7,6 +7,7 @@ The main algorithms implemented are:
 
 * dominators
 * topological sort
+* dominator frontiers
 
 ## Notes
 
