@@ -107,12 +107,14 @@ primitive ArrayHelper
 		h.env.out.print("<<")
 
 		h.env.out.print("[")
+		idx = 0
 		for p in dpre.values() do
-			h.env.out.write("  [ ")
+			h.env.out.>write("  ").>write(idx.string()).>write(" ⇒ [ ")
 			for n in p.values() do
 				h.env.out.>write(n.string()).>write(" ")
 			end
 			h.env.out.print("]")
+			idx = idx + 1
 		end
 		h.env.out.print("]")
 
