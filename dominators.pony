@@ -37,13 +37,13 @@ primitive Dominators
 		Calculate the dominator tree for a graph based on post order predecessors.
 
 		Index `i` contains the predecessors of node `i`
-		Nodes are number in post order i.e.:
+		Nodes are numbered in post order i.e.:
 		- node `0` is the first leaf node reached,
 		- and node `n-1` is the root node where `n` is the total number of nodes.
 
 		In order to traverse the nodes in reverse order we then simply start from n-1.
 
-		The function may throw an error if the predecessor is inconsistent.
+		The function may throw an error if the predecessors are inconsistent.
 		"""
 
 		let node_count: USize = predecessors_by_postorder.size()
