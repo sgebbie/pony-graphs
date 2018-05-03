@@ -36,7 +36,7 @@ primitive ArrayHelper
 
 	fun assert_arrays_eq[N](h: TestHelper, expected: Array[N], actual: Array[N], loc: SourceLoc = __loc): Bool =>
 		// test array equality
-		let locs: String = loc.method() + ":" + loc.line().string()
+		let locs: String = loc.method_name() + ":" + loc.line().string()
 		let esize: USize = expected.size()
 		let asize: USize = actual.size()
 		h.assert_eq[USize](esize, asize, "Array sizes differ: " + locs)
@@ -60,7 +60,7 @@ primitive ArrayHelper
 
 	fun assert_arrays_eqc[N: Any #read](h: TestHelper, expected: Array[N], actual: Array[N], eval: {(TestHelper,N,N): Bool}, loc: SourceLoc = __loc): Bool =>
 		// test array equality
-		let locs: String = loc.method() + ":" + loc.line().string()
+		let locs: String = loc.method_name() + ":" + loc.line().string()
 		let esize: USize = expected.size()
 		let asize: USize = actual.size()
 		h.assert_eq[USize](esize, asize, "Array sizes differ: " + locs)
